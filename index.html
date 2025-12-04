@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection - Image Upload</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6e7f91, #99aab5);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 350px; /* Adjusted for box size */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        input[type="file"] {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+            border: none;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        button {
+            padding: 8px 20px;
+            font-size: 0.9em;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 10px;
+            background-color: #ffffff;
+            color: #333;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 250px;
+            text-align: center;
+        }
+
+        img {
+            max-width: 70%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .message {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            color: #ff0000;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload an Image for Emotion Detection</h1>
+        <input type="file" id="file-input" accept="image/*">
+        <button onclick="uploadImage()">Upload Image</button>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        const uploadImage = async () => {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+            const resultDiv = document.getElementById('result');
+
+            // Clear previous results
+            resultDiv.innerHTML = '';
+
+            if (!file) {
+                alert('Please select a file!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const imageUrl = URL.createObjectURL(file);
+
+                    resultDiv.innerHTML = `
+                        <p class="message">Success: ${data.message}</p>
+                        <p>Filename: ${data.filename}</p>
+                        <p>Predicted Emotion: <strong>${data.predicted_emotion}</strong></p>
+                        <img src="${imageUrl}" alt="Uploaded Image">
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                console.error('An error occurred:', error);
+                resultDiv.innerHTML = `<p class="error">An error occurred: ${error}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
